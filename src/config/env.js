@@ -12,6 +12,7 @@ const envSchema = z.object({
     .string({ error: "PORT is required" })
     .transform(value => Number(value))
     .default("3000"),
+  DATABASE_URL: z.string({ error: "DATABASE_URL is required" }),
 });
 
 export const envValidate = () => {

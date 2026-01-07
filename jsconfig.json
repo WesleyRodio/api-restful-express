@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "checkJs": false,
+    "moduleResolution": "nodenext",
+    "module": "nodenext",
+    "noImplicitAny": false,
+    // "paths": {
+    //   "*": [
+    //     "./src/*"
+    //   ]
+    // },
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types"
+    ]
+  },
+  "include": [
+    "src/**/*",
+    "types/**/*"
+  ]
+}

@@ -1,7 +1,12 @@
+import { writeFileSync } from "fs";
+import { join } from "path";
+
 import { envValidate } from "../../config/env.js";
-import { AppError, ValidationError } from "../error/erros.js";
+import { DIRNAME } from "../../server.js";
+import { AppError, ValidationError } from "../error/index.js";
 
 const env = envValidate();
+
 /**
  *
  * @param {AppError} err
@@ -23,12 +28,16 @@ export default function (err, req, res, _next) {
     stack: env.NODE_ENV === "development" ? err.stack : undefined,
   };
 
-  if (err.statusCode >= 500) {
-    console.error("❌", errorLog);
+  if (err.statusCode >= 500 || !err.statusCode) {
+    const pathLog = join(DIRNAME, "src", "warn.log");
+    const content = `${JSON.stringify(errorLog, null, 2)}\n--------------------\n`;
+    writeFileSync(pathLog, content, {
+      flag: "a",
+    });
+
+    console.error("🔴  ALERTA INTERNO:", errorLog);
   } else if (err.statusCode >= 400) {
-    console.warn("⚠️", errorLog);
-  } else {
-    console.log("ℹ️", errorLog);
+    console.warn("⚠️  BAD REQUESTS", errorLog);
   }
 
   if (err instanceof ValidationError) {
@@ -39,6 +48,23 @@ export default function (err, req, res, _next) {
       details: err.details,
       timestamp: err.timestamp,
       ...(env.NODE_ENV === "development" && { stack: err.stack }),
+    });
+  }
+
+  if (err.name === "ZodError") {
+    console.log(err.errors);
+
+    return res.status(400).json({
+      error: true,
+      errorCode: 400,
+      message: "Validation error",
+      details:
+        err.errors?.map(e => ({
+          field: e.path.join("."),
+          message: e.message,
+          code: e.code,
+        })) ?? null,
+      timestamp: new Date().toISOString(),
     });
   }
 
