@@ -52,20 +52,32 @@ class UsersController {
       );
     }
 
-    const { id, avatar, email, name, password, role } = data.data;
+    const values = data.data;
 
     const user = await UsersService.update({
-      id,
-      data: {
-        avatar,
-        email,
-        name,
-        password,
-        role,
-      },
+      id: req.params.id,
+      data: values,
     });
 
     res.success(user);
+  }
+
+  /**
+   * @param {import("express").Request} req
+   * @param {import("express").Response} res
+   */
+  updateAvatar(req, res) {
+    if (!req.file) {
+      throw new ValidationError(responses.invalidData(), [
+        {
+          field: "avatar",
+          message: "No file uploaded",
+          code: "custom",
+        },
+      ]);
+    }
+
+    res.success({ Hello: "World" });
   }
 
   /**

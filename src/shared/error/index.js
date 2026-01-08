@@ -45,6 +45,13 @@ export class ValidationError extends AppError {
   }
 }
 
+export class InvalidUpload extends ValidationError {
+  constructor(message, details) {
+    super(message, BAD_REQUEST, "INVALID_UPLOAD", true);
+    this.details = details;
+  }
+}
+
 export class NotFoundError extends AppError {
   constructor(resource = "Resource") {
     super(`${resource} not found`, NOT_FOUND, "NOT_FOUND_ERROR", true);

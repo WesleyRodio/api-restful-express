@@ -1,7 +1,14 @@
 import bcrypt from "bcrypt";
 
-import { CreateInvalidUser } from "../../shared/error/user/index.js";
-import { UserResponseSchema, UsersResponseSchema } from "../schemas/users.js";
+import {
+  CreateInvalidUser,
+  UserNotFoundError,
+} from "../../shared/error/user/index.js";
+import {
+  UserResponseSchema,
+  UsersResponseSchema,
+  UserUpdateSchema,
+} from "../schemas/users.js";
 
 import UsersRepository from "./users.repository.js";
 
@@ -29,18 +36,22 @@ class UserService {
     return UserResponseSchema.parse(newUser);
   }
 
-  async update({ id, name, email, password, role, avatar }) {
-    const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
+  async update({ id, data }) {
+    const values = UserUpdateSchema.parse(data);
+
+    if (values.password) {
+      values.password = await bcrypt.hash(values.password, 10);
+    }
+
+    const existingUser = await UsersRepository.findById(id);
+
+    if (!existingUser) {
+      throw new UserNotFoundError(id, values);
+    }
 
     const updateUser = await UsersRepository.update({
       id,
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role,
-        avatar,
-      },
+      data: values,
     });
 
     return UserResponseSchema.parse(updateUser);
@@ -50,7 +61,6 @@ class UserService {
     const users = await UsersRepository.findUsers();
 
     return UsersResponseSchema.parse(users);
-    // return users;
   }
 }
 

@@ -16,3 +16,12 @@ export class CreateInvalidUser extends BusinessError {
     );
   }
 }
+
+export class UserNotFoundError extends BusinessError {
+  constructor(id, details = {}) {
+    super(`User ${id} not found`, 404, "USER_NOT_FOUND", {
+      id,
+      ...details,
+    });
+  }
+}

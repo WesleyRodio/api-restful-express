@@ -1,9 +1,11 @@
 import { writeFileSync } from "fs";
 import { join } from "path";
 
+import { MulterError } from "multer";
+
 import { envValidate } from "../../config/env.js";
 import { DIRNAME } from "../../server.js";
-import { AppError, ValidationError } from "../error/index.js";
+import { AppError, InvalidUpload, ValidationError } from "../error/index.js";
 
 const env = envValidate();
 
@@ -47,6 +49,34 @@ export default function (err, req, res, _next) {
       message: err.message,
       details: err.details,
       timestamp: err.timestamp,
+      ...(env.NODE_ENV === "development" && { stack: err.stack }),
+    });
+  }
+
+  if (err instanceof InvalidUpload) {
+    return res.status(err.statusCode).json({
+      error: true,
+      errorCode: err.errorCode,
+      message: err.message,
+      details: err.details,
+      timestamp: err.timestamp,
+      ...(env.NODE_ENV === "development" && { stack: err.stack }),
+    });
+  }
+
+  if (err instanceof MulterError) {
+    return res.status(400).json({
+      error: true,
+      errorCode: "INVALID_UPLOAD",
+      message: "Invalid file upload",
+      details: [
+        {
+          field: "image",
+          message: err.message,
+          code: err.code,
+        },
+      ],
+      timestamp: new Date().toISOString(),
       ...(env.NODE_ENV === "development" && { stack: err.stack }),
     });
   }

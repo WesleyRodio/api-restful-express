@@ -6,7 +6,7 @@ import handleErrorZod from "./index.js";
 
 export const UserSchema = z.object({
   id: z.string({
-    error: handleErrorZod,
+    error: iss => handleErrorZod(iss, "id", "string"),
   }),
   name: z.string({ error: iss => handleErrorZod(iss, "name", "string") }),
   password: z.string({
@@ -27,7 +27,9 @@ export const UserUpdateSchema = UserSchema.partial().refine(
     return providedFields.length > 0;
   },
   {
-    error: responses.invalidData(),
+    error: iss => {
+      return responses.atLeastOneFieldRequired("User", iss);
+    },
   },
 );
 
@@ -37,7 +39,7 @@ export const UserLoginSchema = UserSchema.pick(
     password: true,
   },
   {
-    error: handleErrorZod,
+    error: iss => handleErrorZod(iss, "email | password", "string"),
   },
 );
 
